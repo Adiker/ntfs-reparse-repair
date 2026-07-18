@@ -1,0 +1,59 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+env:
+  NTFSPROGS_PLUS_COMMIT: 53943daef955cc2a4a405c8e37c62478e4272fec
+
+jobs:
+  build-and-check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Check out repair tooling
+        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6
+        with:
+          fetch-depth: 0
+
+      - name: Install build dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install --yes \
+            autoconf automake build-essential libblkid-dev libgcrypt20-dev \
+            libgnutls28-dev libtool pkg-config uuid-dev
+
+      - name: Build pinned ntfsprogs-plus library
+        run: |
+          git clone https://github.com/ntfsprogs-plus/ntfsprogs-plus.git ../ntfsprogs-plus
+          git -C ../ntfsprogs-plus checkout "$NTFSPROGS_PLUS_COMMIT"
+          (cd ../ntfsprogs-plus && ./autogen.sh)
+          (cd ../ntfsprogs-plus && ./configure --disable-ldconfig)
+          make -C ../ntfsprogs-plus/libntfs -j"$(nproc)"
+
+      - name: Check shell syntax and parser safety
+        run: |
+          bash -n scripts/*.sh tests/*.sh
+          ./tests/test-config-parser.sh
+
+      - name: Build with warnings as errors
+        run: ./scripts/build.sh ../ntfsprogs-plus
+
+      - name: Run GCC static analyzer
+        run: |
+          common=(
+            -DHAVE_CONFIG_H
+            -I../ntfsprogs-plus
+            -I../ntfsprogs-plus/include
+            -O0 -Wall -Wextra -Werror -Wno-address-of-packed-member
+            -fanalyzer
+          )
+          gcc "${common[@]}" -c src/ntfs-r-audit.c -o /tmp/ntfs-r-audit.o
+          gcc "${common[@]}" -c src/ntfs-r-rebuild.c -o /tmp/ntfs-r-rebuild.o
+
+      - name: Check patch whitespace
+        run: git diff --check HEAD^
