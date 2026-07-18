@@ -18,13 +18,21 @@ trap cleanup EXIT
 printf '%s\n' \
     "DISK_BY_ID='/dev/disk/by-id/example'" \
     "EXPECTED_MODEL='literal-\$(touch $marker)'" \
-    "EXPECTED_DISK_BYTES=123" >"$config"
+    "EXPECTED_DISK_BYTES='x[\$(touch $marker)]'" >"$config"
 
 load_recovery_config "$config"
 [[ $DISK_BY_ID == /dev/disk/by-id/example ]]
 [[ $EXPECTED_MODEL == "literal-\$(touch $marker)" ]]
-[[ $EXPECTED_DISK_BYTES == 123 ]]
+[[ $EXPECTED_DISK_BYTES == "x[\$(touch $marker)]" ]]
 [[ ! -e $marker ]]
+if is_positive_decimal "$EXPECTED_DISK_BYTES"; then
+    printf 'Numeric validator accepted an arithmetic expression.\n' >&2
+    exit 1
+fi
+[[ ! -e $marker ]]
+is_positive_decimal 123
+! is_positive_decimal 0
+! is_positive_decimal 12x
 
 printf '%s\n' "UNSUPPORTED_KEY='value'" >"$config"
 if load_recovery_config "$config" 2>/dev/null; then

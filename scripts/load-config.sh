@@ -63,3 +63,10 @@ load_recovery_config() {
         printf -v "$key" '%s' "$value"
     done <"$config_file"
 }
+
+# Keep values out of Bash arithmetic evaluation.  Arithmetic operands are
+# expressions, not plain strings, and may execute command substitutions hidden
+# in array subscripts when they come from an untrusted configuration value.
+is_positive_decimal() {
+    [[ $# -eq 1 && $1 =~ ^[1-9][0-9]*$ ]]
+}

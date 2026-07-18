@@ -104,7 +104,7 @@ static int resident_reparse_tag(const MFT_RECORD *mrec, u32 record_size,
 
 	if (bytes_in_use > record_size || offset >= bytes_in_use)
 		return -1;
-	while (offset + 8 <= bytes_in_use) {
+	while (offset <= bytes_in_use && bytes_in_use - offset >= 8) {
 		const ATTR_RECORD *attr =
 			(const ATTR_RECORD *)((const u8 *)mrec + offset);
 		le32 disk_type;
@@ -115,19 +115,20 @@ static int resident_reparse_tag(const MFT_RECORD *mrec, u32 record_size,
 		type = le32_to_cpu(disk_type);
 		if (type == 0xffffffffU)
 			return 0;
-		if (offset + 24 > bytes_in_use)
+		if (bytes_in_use - offset < 24)
 			return -1;
 		length = le32_to_cpu(attr->length);
-		if (length < 24 || offset + length > bytes_in_use)
+		if (length < 24 || length > bytes_in_use - offset)
 			return -1;
 		if (type == 0x000000c0U) {
+			u16 value_offset = le16_to_cpu(attr->value_offset);
+
 			if (attr->non_resident)
 				return 2;
 			if (le32_to_cpu(attr->value_length) < sizeof(le32) ||
-					le16_to_cpu(attr->value_offset) + sizeof(le32) > length)
+					value_offset > length - sizeof(le32))
 				return -1;
-			memcpy(tag, (const u8 *)attr +
-				le16_to_cpu(attr->value_offset), sizeof(le32));
+			memcpy(tag, (const u8 *)attr + value_offset, sizeof(le32));
 			*tag = le32_to_cpu(*tag);
 			return 1;
 		}

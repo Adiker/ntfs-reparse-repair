@@ -22,8 +22,8 @@ mkdir -p "$artifact_dir"
 
 blockdev --setro "$disk"
 blockdev --setro "$partition"
-[[ $(blockdev --getro "$disk") -eq 1 ]]
-[[ $(blockdev --getro "$partition") -eq 1 ]]
+[[ $(blockdev --getro "$disk") == 1 ]]
+[[ $(blockdev --getro "$partition") == 1 ]]
 
 output="$artifact_dir/audit-$(date +%Y%m%d-%H%M%S).log"
 set +e

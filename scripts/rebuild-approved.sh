@@ -22,7 +22,8 @@ required=(EXPECTED_KEYS BACKUP_IMAGE BACKUP_SHA256)
 for name in "${required[@]}"; do
     [[ -n ${!name:-} ]] || { printf 'Missing %s\n' "$name" >&2; exit 5; }
 done
-[[ $EXPECTED_KEYS =~ ^[1-9][0-9]*$ ]]
+is_positive_decimal "$EXPECTED_KEYS"
+[[ $BACKUP_SHA256 =~ ^[[:xdigit:]]{64}$ ]]
 
 disk=$(realpath "$DISK_BY_ID")
 partition=$(realpath "$PARTITION_BY_ID")
@@ -49,13 +50,14 @@ blockdev --setro "$partition"
 "$audit_bin" "$partition" | tee "$pre"
 grep -q '^AUDIT_SAFE_TO_REBUILD=YES$' "$pre"
 actual_keys=$(awk -F= '/^SUMMARY_TOTAL=/{print $2}' "$pre")
-[[ $actual_keys -eq $EXPECTED_KEYS ]]
+is_positive_decimal "$actual_keys"
+[[ $actual_keys == "$EXPECTED_KEYS" ]]
 
 printf '%s\n' '=== APPROVED METADATA WRITE WINDOW OPEN ==='
 blockdev --setrw "$disk"
 blockdev --setrw "$partition"
-[[ $(blockdev --getro "$disk") -eq 0 ]]
-[[ $(blockdev --getro "$partition") -eq 0 ]]
+[[ $(blockdev --getro "$disk") == 0 ]]
+[[ $(blockdev --getro "$partition") == 0 ]]
 # Close the validation-to-write gap as far as a shell wrapper can: re-check
 # identity and mount state immediately before invoking the writer.
 "$repo_root/scripts/validate-target.sh" "$config"
