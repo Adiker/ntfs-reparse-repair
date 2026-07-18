@@ -1,0 +1,9 @@
+build/
+artifacts/
+recovery.env
+*.img
+*.vhd
+*.vhdx
+*.log
+*.txt
+!.github/PULL_REQUEST_TEMPLATE.md
