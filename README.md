@@ -31,6 +31,8 @@ Projekt powstał na podstawie rzeczywistego przypadku, w którym:
 - `scripts/rebuild-approved.sh` — kontrolowane okno zapisu z blokadami;
 - `recovery.env.example` — szablon parametrów konkretnego nośnika;
 - `docs/PROCEDURE.pl.md` — pełna procedura krok po kroku;
+- `docs/NTFS-PO-NAGLYM-WYLACZENIU.pl.md` — osobna procedura dla woluminu
+  oznaczonego jako dirty po nagłym wyłączeniu, z dostępem tylko do odczytu;
 - `docs/DESIGN.md` — założenia, ograniczenia i model bezpieczeństwa.
 
 ## Wymagania
