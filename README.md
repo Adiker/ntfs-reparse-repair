@@ -33,6 +33,8 @@ Projekt powstał na podstawie rzeczywistego przypadku, w którym:
 - `docs/PROCEDURE.pl.md` — pełna procedura krok po kroku;
 - `docs/NTFS-PO-NAGLYM-WYLACZENIU.pl.md` — osobna procedura dla woluminu
   oznaczonego jako dirty po nagłym wyłączeniu, z dostępem tylko do odczytu;
+- `docs/PRZYKLAD-2026-11-27.pl.md` — przykład diagnostyki czterech woluminów
+  i ograniczeń naprawy przy błędach sprzętowych;
 - `docs/DESIGN.md` — założenia, ograniczenia i model bezpieczeństwa.
 
 ## Wymagania
